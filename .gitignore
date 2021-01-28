@@ -1,0 +1,9 @@
+RPMS/*
+screenshots/*
+tmp/*
+rpm/coinfest.spec
+Makefile
+documentation.list
+libapp.a
+coinfest
+coinfest.o
