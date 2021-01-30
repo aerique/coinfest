@@ -19,7 +19,7 @@
 (defparameter *api-url* "https://api.kraken.com")
 
 ;(defparameter *api-delay* 0.25)  ; wait this long between API calls
-(defparameter *api-delay* 0.01)   ; mainly a concern when refreshing tickers
+(defparameter *api-delay* 0.10)   ; mainly a concern when refreshing tickers
 
 
 ;;; Functions
