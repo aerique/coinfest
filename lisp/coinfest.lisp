@@ -120,24 +120,34 @@
 (defun refresh-ticker (exchange currency-pair)
   (cond ((string= exchange "Kraken")
          (let* ((display-name (getf currency-pair :wsname))
-                ;; FIXME this needs an error handler
                 (ticker (kraken:ticker (getf currency-pair :id)))
-                (price (getf (getf ticker :last-trade-closed) :price)))
-           (if (numberp price)
-               (list :uuid (cfc:uuid) :exchange exchange
-                     :id (getf currency-pair :id) :display-name display-name
-                     :quote (getf currency-pair :quote)  ; XXX not used ATM
-                     :price price :previous-price nil
-                     :timestamp (get-universal-time) :previous-timestamp nil)
-               (feedback (cfc:mkstr "Problem getting price for " exchange "::"
-                                    display-name ": " price)))))
+                (price (unless (getf ticker :error)
+                         (getf (getf ticker :last-trade-closed) :price))))
+           (cond ((numberp price)
+                  (list :uuid (cfc:uuid) :exchange exchange
+                        :id (getf currency-pair :id) :display-name display-name
+                        :quote (getf currency-pair :quote)  ; XXX not used ATM
+                        :price price :previous-price nil
+                        :timestamp (get-universal-time)
+                        :previous-timestamp nil))
+                 ((getf ticker :error)  ; known error
+                  ticker)               ; bubble up
+                 (t
+                  (feedback (cfc:mkstr "Problem getting price for " exchange
+                                        "::" display-name ": " ticker))
+                  nil))))  ; `feedback` returns `T`
         (t
-         (feedback (cfc:mkstr "Exchange not supported: " exchange)))))
+         (feedback (cfc:mkstr "Exchange not supported: " exchange))
+         nil)))  ; `feedback` returns `T`
 
 
 (defun kraken-currency-pairs ()
   (unless *kraken-currency-pairs*
-    (setf *kraken-currency-pairs* (kraken:asset-pairs)))
+    (let ((aps (kraken:asset-pairs)))
+      (if (getf aps :error)
+          (feedback (cfc:mkstr "Problem getting Kraken asset pairs: "
+                               (getf aps :error)))
+          (setf *kraken-currency-pairs* (kraken:asset-pairs)))))
   *kraken-currency-pairs*)
 
 
@@ -157,12 +167,16 @@
 (defun add-ticker (exchange display-name)
   (let* ((cp (find-currency-pair-by-display-name display-name))
          (internal-ticker (refresh-ticker exchange cp)))
-    ;; Error already signaled by `refresh-ticker`.
-    (when internal-ticker
-      (push internal-ticker *internal-tickers*)
-      (write-tickers)
-      (set-overview-model)
-      (format t "Ticker ~A::~A added.~%" exchange display-name))))
+    (cond ((getf internal-ticker :error)
+           (feedback (cfc:mkstr "Error adding ticker: "
+                                (getf internal-ticker :error))))
+          (internal-ticker
+           (push internal-ticker *internal-tickers*)
+           (write-tickers)
+           (set-overview-model)
+           (format t "Ticker ~A::~A added.~%" exchange display-name))
+          (t
+           (format t "Unknown problem adding ticker.~%")))))
 
 
 (defun delete-ticker (uuid)
@@ -189,7 +203,10 @@
 ;; populate `*tickers-model*`.
 ;;
 ;; Since we compile it in it will get outdated.
-(setf *tickers-model* (kraken-tickers-for-model))
+(setf *tickers-model*         (kraken-tickers-for-model)
+      ;; Ugly hack to make sure the Kraken tickers get refreshed at least
+      ;; once per app run.
+      *kraken-currency-pairs* nil)
 
 
 (defun path-to-config-file ()
@@ -254,18 +271,28 @@
 
 (defun refresh-tickers-thread ()
   (format t "Refreshing all tickers:~%")
-  (setf *internal-tickers*
-        (loop for internal-ticker in *internal-tickers*
-              for exchange = (getf internal-ticker :exchange)
-              for dpn      = (getf internal-ticker :display-name)
-              for cp       = (find-currency-pair-by-display-name dpn)
-              for plst     = (refresh-ticker exchange cp)
-              when plst do (format t "- ~A~%" dpn)
-                           (setf (getf plst :previous-price)
-                                 (getf internal-ticker :price))
-                           (setf (getf plst :previous-timestamp)
-                                 (getf internal-ticker :timestamp))
-              when plst collect plst))
+  (loop for internal-ticker in *internal-tickers*
+        for exchange = (getf internal-ticker :exchange)
+        for dpn      = (getf internal-ticker :display-name)
+        for cp       = (find-currency-pair-by-display-name dpn)
+        for plst     = (refresh-ticker exchange cp)
+        do (cond ((getf plst :error)
+                  (feedback (cfc:mkstr "Problem refreshing ticker: "
+                                       (getf plst :error)))
+                  (qml:qml-set "busy_label" "running" nil)
+                  (return-from refresh-tickers-thread))
+                 (;; Most of these problems should have been caught and
+                  ;; handled in `refresh-ticker`.
+                  (null plst)
+                  (qml:qml-set "busy_label" "running" nil)
+                  (return-from refresh-tickers-thread)))
+        when plst do (format t "- ~A~%" dpn)
+                     (setf (getf plst :previous-price)
+                           (getf internal-ticker :price))
+                     (setf (getf plst :previous-timestamp)
+                           (getf internal-ticker :timestamp))
+        when plst collect plst into new-tickers
+        finally (setf *internal-tickers* new-tickers))
   (write-tickers)  ; FIXME do this at app close
   ;(set-overview-model)      ; does not work from a (different) thread
   (setf *update-model-p* t)  ; so we have this hack

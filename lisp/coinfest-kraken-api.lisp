@@ -113,7 +113,9 @@
 (defun asset-pairs ()
   (let* ((api "/0/public/AssetPairs")
          (res (api-call api))
-         (json (jsown:parse (flexi-streams:octets-to-string res))))
+         (json (if (stringp res)
+                   (jsown:new-js ("error" "Got back HTML page"))
+                   (jsown:parse (flexi-streams:octets-to-string res)))))
     (if (jsown:val json "error")
         (list :error (jsown:val json "error"))
         (loop with result = (jsown:val json "result")
@@ -132,7 +134,9 @@
                                           (cons "interval" interval))
                                     (when since
                                       (list (cons "since" since))))))
-         (json (jsown:parse (flexi-streams:octets-to-string res))))
+         (json (if (stringp res)
+                   (jsown:new-js ("error" "Got back HTML page"))
+                   (jsown:parse (flexi-streams:octets-to-string res)))))
     (if (jsown:val json "error")
         (list :error (jsown:val json "error"))
         (let (;; NOTE: we assume the returned data is sorted on timestamp!
