@@ -20,7 +20,7 @@
 
 ;;; Globals
 
-(defparameter *ticker-refresh* 600)  ; seconds
+(defparameter *ticker-refresh* 7200)  ; seconds
 
 (defparameter *exchanges-model* '("Kraken"))
 (defparameter *tickers-model* '())  ; set again at `kraken-tickers-for-model`
