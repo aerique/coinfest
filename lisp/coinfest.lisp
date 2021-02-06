@@ -279,12 +279,14 @@
         do (cond ((getf plst :error)
                   (feedback (cfc:mkstr "Problem refreshing ticker: "
                                        (getf plst :error)))
-                  (qml:qml-set "busy_label" "running" nil)
+                  (qml:qml-set "busy_indicator" "running" nil)
+                  (qml:qml-set "busy_rect" "visible" nil)
                   (return-from refresh-tickers-thread))
                  (;; Most of these problems should have been caught and
                   ;; handled in `refresh-ticker`.
                   (null plst)
-                  (qml:qml-set "busy_label" "running" nil)
+                  (qml:qml-set "busy_indicator" "running" nil)
+                  (qml:qml-set "busy_rect" "visible" nil)
                   (return-from refresh-tickers-thread)))
         when plst do (format t "- ~A~%" dpn)
                      (setf (getf plst :previous-price)
@@ -296,11 +298,13 @@
   (write-tickers)  ; FIXME do this at app close
   ;(set-overview-model)      ; does not work from a (different) thread
   (setf *update-model-p* t)  ; so we have this hack
-  (qml:qml-set "busy_label" "running" nil))
+  (qml:qml-set "busy_indicator" "running" nil)
+  (qml:qml-set "busy_rect" "visible" nil))
 
 (defun refresh-tickers ()
   (qml:qml-set "busy_label" "text" "Refreshing all tickers")
-  (qml:qml-set "busy_label" "running" t)
+  (qml:qml-set "busy_indicator" "running" t)
+  (qml:qml-set "busy_rect" "visible" t)
   ;; Fire off a thread so we don't block the GUI.  We use ECL thread code and
   ;; not a portable thread library since EQL5 is ECL-only anyway.  Startup time
   ;; is getting long enough as it is already.
