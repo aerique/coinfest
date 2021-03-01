@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Nemo.KeepAlive 1.2
 import Nemo.Notifications 1.0
 import EQL5 1.0
 
@@ -13,13 +14,7 @@ ApplicationWindow
 
     RemorsePopup { id: remorse }
 
-    //BusyLabel {
-    //    id: busy_label
-    //    objectName: "busy_label"
-    //    text: ""
-    //    running: false
-    //}
-
+    // My BusyLabel
     Rectangle {
         id: busy_rect
         objectName: "busy_rect"
@@ -103,15 +98,14 @@ ApplicationWindow
         previewBody: ""
     }
 
-    Timer {
+    BackgroundJob {
         id: tickerRefreshTimer
-        // `*ticker-refresh*` is in seconds
-        interval: 1000 * Lisp.call("cf:get-ticker-refresh")
-        running: true
-        repeat: true
+        frequency: eval(Lisp.call("cf:get-ticker-refresh-for-bgjob"))
+        enabled: true
         onTriggered: function() {
             Lisp.call("cf:refresh-tickers")
             setOverviewModelTimer.running = true
+            tickerRefreshTimer.finished()
         }
     }
 

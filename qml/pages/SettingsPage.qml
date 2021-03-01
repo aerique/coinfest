@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Nemo.KeepAlive 1.2
 import EQL5 1.0
 
 Page {
@@ -38,17 +39,20 @@ Page {
                 objectName: "tickerRefresh"
                 width: parent.width
                 description: "between refreshing all tickers"
-                currentIndex: Lisp.call("cf:get-ticker-refresh-for-combobox")
+                currentIndex: Lisp.call("cf:get-ticker-refresh")
                 menu: ContextMenu {
-                    MenuItem { text: "30 minutes" }
-                    MenuItem { text: "2 hours" }
-                    MenuItem { text: "6 hours" }
-                    MenuItem { text: "12 hours" }
-                    MenuItem { text: "1 day" }
+                    // See coinfest.lisp:get-ticker-refresh-for-bgjob
+                    //MenuItem { text: "5 minutes" } // too often, sorry
+                    MenuItem { text: "15 minutes" }  // 0
+                    MenuItem { text: "30 minutes" }  // 1
+                    MenuItem { text: "1 hour"     }  // 2
+                    MenuItem { text: "4 hours"    }  // 3
+                    MenuItem { text: "12 hours"   }  // 4
                     onClicked: function() {
-                        Lisp.call("cf:set-ticker-refresh", tickerRefresh.value)
-                        tickerRefreshTimer.interval = 1000 *
-                            Lisp.call("cf:get-ticker-refresh")
+                        Lisp.call("cf:set-ticker-refresh",
+                                  tickerRefresh.currentIndex)
+                        tickerRefreshTimer.frequency = eval(Lisp.call(
+                            "cf:get-ticker-refresh-for-bgjob"))
                     }
                 }
             }

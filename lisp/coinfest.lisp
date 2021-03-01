@@ -20,7 +20,7 @@
 
 ;;; Globals
 
-(defparameter *ticker-refresh* 7200)  ; seconds
+(defparameter *ticker-refresh* 2)
 
 (defparameter *exchanges-model* '("Kraken"))
 (defparameter *tickers-model* '())  ; set again at `kraken-tickers-for-model`
@@ -73,40 +73,26 @@
 ;;; Getters and Setters
 
 (defun get-ticker-refresh ()
+  ;; XXX Naive migration from old-form config (which was in seconds).  We
+  ;; XXX have so few people using the app: remove this in 2022.
+  (when (> *ticker-refresh* 4)
+    (setf *ticker-refresh* 2))
   *ticker-refresh*)
 
 
-;; XXX temporary hack (2021-01-26)
-;; FIXME closely coupled to UI!
-(defun get-ticker-refresh-for-combobox ()
+;; See SettingsPage.qml:tickerRefresh
+(defun get-ticker-refresh-for-bgjob ()
   (case (get-ticker-refresh)
-    ( 1800 0)  ; 30m
-    ( 7200 1)  ;  2h
-    (21600 2)  ;  6h
-    (43200 3)  ; 12h
-    (86400 4)  ;  1d
-    (otherwise -1)))
+    (0 "BackgroundJob.FifteenMinutes")  ; 0
+    (1 "BackgroundJob.ThirtyMinutes")   ; 1
+    (2 "BackgroundJob.OneHour")         ; 2
+    (3 "BackgroundJob.FourHours")       ; 3
+    (4 "BackgroundJob.TwelveHours")     ; 4
+    (otherwise "BackgroundJob.OneHour")))
 
 
-(defun set-ticker-refresh (refresh-time)
-  ;; A bit blunt but I don't want to import CL-PPCRE.
-  ;; XXX update: CL-PPCRE is imported by Drakma anyway
-  (let ((value (parse-integer (subseq refresh-time 0
-                                      (position #\space refresh-time))))
-        (multiplier (cond ((or (cfc:ends-with refresh-time "minute")
-                               (cfc:ends-with refresh-time "minutes"))
-                           60)
-                          ((or (cfc:ends-with refresh-time "hour")
-                               (cfc:ends-with refresh-time "hours"))
-                           (* 60 60))
-                          ((or (cfc:ends-with refresh-time "day")
-                               (cfc:ends-with refresh-time "days"))
-                           (* 60 60 24))
-                          (t (pf-feedback (mkstr "Unknown multiplier: "
-                                                 refresh-time))
-                             (return-from set-ticker-refresh)))))
-    (setf *ticker-refresh* (* value multiplier)))
-  (format t "Ticker refresh time set to ~Ds.~%" *ticker-refresh*)
+(defun set-ticker-refresh (combobox-index)
+  (setf *ticker-refresh* combobox-index)
   (write-config))
 
 

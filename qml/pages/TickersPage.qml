@@ -125,6 +125,7 @@ Page {
             MenuItem {
                 text: "Refresh"
                 onClicked: function() {
+                    tickerRefreshTimer.finished()
                     Lisp.call("cf:refresh-tickers")
                     setOverviewModelTimer.running = true
                 }
