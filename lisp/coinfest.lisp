@@ -133,7 +133,7 @@
       (if (getf aps :error)
           (feedback (cfc:mkstr "Problem getting Kraken asset pairs: "
                                (getf aps :error)))
-          (setf *kraken-currency-pairs* (kraken:asset-pairs)))))
+          (setf *kraken-currency-pairs* aps))))
   *kraken-currency-pairs*)
 
 
