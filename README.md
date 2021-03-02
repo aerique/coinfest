@@ -1,5 +1,7 @@
 # Coinfest
 
+- [Changelog](CHANGELOG.md)
+
 A cryptocurrency tickers app written in Common Lisp.
 
 Thanks to [Renaud Casenave-Péré](https://openrepos.net/user/856/programs)
