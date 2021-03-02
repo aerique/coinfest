@@ -189,10 +189,10 @@
 ;; populate `*tickers-model*`.
 ;;
 ;; Since we compile it in it will get outdated.
-(setf *tickers-model*         (kraken-tickers-for-model)
-      ;; Ugly hack to make sure the Kraken tickers get refreshed at least
-      ;; once per app run.
-      *kraken-currency-pairs* nil)
+;(setf *tickers-model*         (kraken-tickers-for-model)
+;      ;; Ugly hack to make sure the Kraken tickers get refreshed at least
+;      ;; once per app run.
+;      *kraken-currency-pairs* nil)
 
 
 (defun path-to-config-file ()

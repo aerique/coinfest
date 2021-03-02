@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Use requested Kraken asset pairs instead of requesting them again.
+
+### Removed
+
+- Do not compile in Kraken asset pairs.  It leads to more troubles than
+  it is worth.
+
 ## 0.11 (2021-03-02)
 
 ### Added
