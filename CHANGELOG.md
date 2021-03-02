@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11 (2021-03-02)
 
 ### Added
 
@@ -27,7 +27,7 @@
 - Better handling of network errors.
 - Show default setting when no config file exists.
 
-## 0.9 (2021-01-29)
+## 0.09 (2021-01-29)
 
 First released version.
 
