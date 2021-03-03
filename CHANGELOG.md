@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.0 (2021-03-03)
+
+### Changed
+
+- Use `harbour-coinfest` instead of `coinfest` as name on the system
+  side of things.
 
 ### Fixed
 

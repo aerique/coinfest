@@ -26,7 +26,7 @@ lisp.input = LISP_FILES
 QMAKE_EXTRA_COMPILERS += lisp
 
 # The name of your application
-TARGET = coinfest
+TARGET = harbour-coinfest
 PRE_TARGETDEPS += libapp.a
 
 CONFIG += sailfishapp
@@ -34,19 +34,19 @@ LIBS += -lecl -leql5 -L. -lapp
 
 SOURCES += src/coinfest.cc
 
-DISTFILES += qml/coinfest.qml \
+DISTFILES += qml/harbour-coinfest.qml \
     qml/cover/CoverPage.qml \
     qml/pages/TickersPage.qml \
     qml/pages/TickerDetailsPage.qml \
     qml/pages/AddTickerDialog.qml \
     qml/pages/SettingsPage.qml \
     qml/pages/AboutPage.qml \
-    rpm/coinfest.changes.in \
-    rpm/coinfest.changes.run.in \
-    rpm/coinfest.spec \
-    rpm/coinfest.yaml \
+    rpm/harbour-coinfest.changes.in \
+    rpm/harbour-coinfest.changes.run.in \
+    rpm/harbour-coinfest.spec \
+    rpm/harbour-coinfest.yaml \
 #    translations/*.ts \
-    coinfest.desktop
+    harbour-coinfest.desktop
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
 
@@ -58,4 +58,4 @@ SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
 # planning to localize your app, remember to comment out the
 # following TRANSLATIONS line. And also do not forget to
 # modify the localized app name in the the .desktop file.
-# TRANSLATIONS += translations/coinfest-de.ts
+# TRANSLATIONS += translations/harbour-coinfest-de.ts
